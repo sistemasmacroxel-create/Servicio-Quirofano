@@ -10,7 +10,7 @@
 <body>
 <div id="mxLoader">Conectando con Macroxel Hospital…</div>
 <script>
-/* MACROXEL v1.0.221 · entrada GitHub dinámica, sin Firebase fija */
+/* MACROXEL v1.0.222 · entrada GitHub dinámica, sin Firebase fija */
 (function(){'use strict';
   const LICENSE_HOST='licenciasmacroxel-default-rtdb.firebaseio.com';
   const routeKey='mx_route_operational_db_v1208::'+location.origin+location.pathname.replace(/\/index\.html?$/i,'/');
@@ -32,7 +32,7 @@
   }
   (async()=>{
     try{
-      const r=await fetch(SOURCE+'?mxv=1.0.221&t='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache, no-store, max-age=0'}});
+      const r=await fetch(SOURCE+'?mxv=1.0.222&t='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache, no-store, max-age=0'}});
       if(!r.ok)throw new Error('HTTP '+r.status);
       render(await r.text());
     }catch(err){

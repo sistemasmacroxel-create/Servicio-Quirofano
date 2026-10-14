@@ -10,36 +10,36 @@
 <body>
 <div id="mxLoader">Conectando con Macroxel Hospital…</div>
 <script>
-/* MACROXEL v1.0.223 · entrada GitHub dinámica, sin Firebase fija */
-(function(){'use strict';
+/* MACROXEL v257 · enlace operativo dinámico + navegación segura al visor central */
+(()=>{'use strict';
   const LICENSE_HOST='licenciasmacroxel-default-rtdb.firebaseio.com';
-  const routeKey='mx_route_operational_db_v1208::'+location.origin+location.pathname.replace(/\/index\.html?$/i,'/');
+  const CENTRAL_REPO='ECOSISTEMA-MACROXEL-HOSPITAL';
+  const TARGET_PATH='/'+CENTRAL_REPO+'/MACROXEL-VISORES-CENTRAL/QUIROFANO-STOCK-ANTIBIOTICOS/';
+  const originRoute=location.origin+location.pathname.replace(/\/index\.html?$/i,'/').replace(/\/+$/,'')+'/';
+  const routeKey='mx_route_operational_db_v1208::'+originRoute;
+  const systemKey='mx_route_system_id_v257::'+originRoute;
   const clean=v=>String(v||'').trim().replace(/\.json\/?$/i,'').replace(/\/+$/,'');
-  const valid=v=>{try{const u=new URL(clean(v)),h=u.hostname.toLowerCase();return u.protocol==='https:'&&/(?:firebaseio\.com|firebasedatabase\.app)$/i.test(h)&&h!==LICENSE_HOST?clean(v):''}catch(_e){return''}};
-  let q='';try{const p=new URLSearchParams(location.search);q=valid(p.get('mxDb')||p.get('firebase')||p.get('db')||'')}catch(_e){}
-  if(q){try{localStorage.setItem(routeKey,q)}catch(_e){}}
-  let saved='';try{saved=valid(localStorage.getItem(routeKey)||'')}catch(_e){}
-  window.mxBoundOperationalDb=()=>q||saved;
-  window.mxRouteIsolationKey=routeKey;
-})();
-(()=>{
-  const CENTRAL_BASE=location.origin+'/ECOSISTEMA-MACROXEL-HOSPITAL/MACROXEL-VISORES-CENTRAL/QUIROFANO-STOCK-ANTIBIOTICOS/';
-  const SOURCE=CENTRAL_BASE+'index.html';
-  function render(html){
-    if(!/<html(?:\s|>)/i.test(html))throw new Error('Contenido central inválido');
-    if(!/<base\s/i.test(html))html=html.replace(/<head([^>]*)>/i,'<head$1><base href="'+CENTRAL_BASE+'">');
-    document.open();document.write(html);document.close();
-  }
-  (async()=>{
-    try{
-      const r=await fetch(SOURCE+'?mxv=1.0.223&t='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache, no-store, max-age=0'}});
-      if(!r.ok)throw new Error('HTTP '+r.status);
-      render(await r.text());
-    }catch(err){
-      const e=document.getElementById('mxLoader');if(e)e.innerHTML='No se pudo cargar Macroxel Hospital.<br><small style="opacity:.75">Verifica Internet y vuelve a abrir este visor desde el Sistema Principal.</small>';
-      console.error(err);
-    }
-  })();
+  const validDb=v=>{try{const u=new URL(clean(v)),h=u.hostname.toLowerCase();return u.protocol==='https:'&&/(?:firebaseio\.com|firebasedatabase\.app)$/i.test(h)&&h!==LICENSE_HOST&&h!=='ecosistema-macroxel-default-rtdb.firebaseio.com'?clean(v):''}catch(_e){return''}};
+  const validSystem=v=>{const s=String(v||'').trim().toUpperCase().replace(/[.#$\[\]\/]/g,'_');return /^MACROXEL-[A-Z0-9_-]{4,}$/.test(s)?s:''};
+  const q=new URLSearchParams(location.search);
+  const dbFromPrincipal=validDb(q.get('mxDb')||q.get('firebase')||q.get('db'));
+  const systemFromPrincipal=validSystem(q.get('mxSystem')||q.get('mxPrincipal')||q.get('mxSystemId')||q.get('system'));
+  let dbSaved='',systemSaved='';
+  try{dbSaved=validDb(localStorage.getItem(routeKey));systemSaved=validSystem(localStorage.getItem(systemKey))}catch(_e){}
+  const target=new URL(TARGET_PATH,location.origin);
+  // Si el principal cambia de sistema o Firebase, jamás combinamos valores anteriores.
+  const changedSystem=!!(systemFromPrincipal&&systemSaved&&systemFromPrincipal!==systemSaved);
+  const changedDb=!!(dbFromPrincipal&&dbSaved&&dbFromPrincipal!==dbSaved);
+  const db=dbFromPrincipal||(q.has('mxDb')||q.has('firebase')||q.has('db')||changedSystem?'':dbSaved);
+  const systemId=systemFromPrincipal||(changedDb?'':systemSaved);
+  try{if(dbFromPrincipal)localStorage.setItem(routeKey,dbFromPrincipal);if(systemFromPrincipal)localStorage.setItem(systemKey,systemFromPrincipal)}catch(_e){}
+  if(db)target.searchParams.set('mxDb',db);
+  if(systemId)target.searchParams.set('mxSystem',systemId);
+  target.searchParams.set('mxSourceRoute',originRoute);
+  for(const k of ['service','initials'])if(q.has(k))target.searchParams.set(k,q.get(k));
+  target.hash=location.hash;
+  if(target.href===location.href){document.getElementById('mxLoader').textContent='No se pudo abrir la integración del visor.';return}
+  location.replace(target.href);
 })();
 </script>
 </body>
